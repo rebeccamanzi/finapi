@@ -7,10 +7,11 @@ app.use(express.json());
 
 const customers = [];
 
-// Create User
+// Criar uma conta
 app.post("/account", (request, response) => {
     const { cpf, name } = request.body;
 
+    // Verificar se já existe um usuário com o cpf informado
     const custumerAlredyExists = customers.some(
         (customer) => customer.cpf === cpf);
 
@@ -26,6 +27,19 @@ app.post("/account", (request, response) => {
     });
 
     return response.status(201).send();
+});
+
+// Buscar o extrato bancário do cliente
+app.get("/statement/:cpf", (request, response) => {
+    const { cpf } = request.params;
+
+    const customer = customers.find(customer => customer.cpf === cpf);
+
+    if(!customer) {
+        return response.status(400).json({error: "Customer not found"})
+    }
+
+    return response.json(customer.statement);
 });
 
 app.listen(3333);
