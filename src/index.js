@@ -8,14 +8,15 @@ app.use(express.json());
 
 const customers = [];
 
-// Middleware -> funções entre request e response
-// Next -> prosseguir para o restante da requisição caso passe com sucesso pelo middleware
-/* Utilização: 
-    1 - Como 2 arg da rota (caso seja um middleware específico para a rota)
-    app.get("/statement/:cpf", verifyIfExistsAccountCPF, (request, response) => {...
-    
-    2 - Utilizando o app.use (caso o middleware seja utilizado em mais rotas)
-    app.use(verifyIfExistsAccountCPF);
+/* 
+    Middleware -> funções entre request e response
+    // Next -> prosseguir para o restante da requisição caso passe com sucesso pelo middleware
+    Utilização: 
+        1 - Como 2 arg da rota (caso seja um middleware específico para a rota)
+        app.get("/statement/:cpf", verifyIfExistsAccountCPF, (request, response) => {...
+        
+        2 - Utilizando o app.use (caso o middleware seja utilizado em mais rotas)
+        app.use(verifyIfExistsAccountCPF);
 */
 function verifyIfExistsAccountCPF(request, response, next) {
     const { cpf } = request.headers;
@@ -66,8 +67,6 @@ app.post("/account", (request, response) => {
     return response.status(201).send();
 });
 
-// app.use(verifyIfExistsAccountCPF);
-
 // Buscar o extrato bancário do cliente
 app.get("/statement", verifyIfExistsAccountCPF, (request, response) => {
     const { customer } = request;
@@ -92,6 +91,7 @@ app.post("/deposit", verifyIfExistsAccountCPF, (request, response) => {
     return response.status(201).send();
 });
 
+// Realizar um saque
 app.post("/withdraw", verifyIfExistsAccountCPF, (request, response) => {
     const { amount } = request.body;
     const { customer } = request;
@@ -112,5 +112,19 @@ app.post("/withdraw", verifyIfExistsAccountCPF, (request, response) => {
     return response.status(201).send();
 
 });
+
+// Buscar o extrato bancário do cliente por data
+app.get("/statement/date", verifyIfExistsAccountCPF, (request, response) => {
+    const { customer } = request;
+    const { date } = request.query;
+
+    const dateFormat = new Date(date + " 00:00");
+
+    const statement = customer.statement.filter((statement) => 
+    statement.created_at.toDateString() === new Date(dateFormat).toDateString());
+
+    return response.json(customer.statement);
+});
+
 
 app.listen(3333);
