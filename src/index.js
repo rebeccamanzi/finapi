@@ -18,7 +18,7 @@ const customers = [];
     app.use(verifyIfExistsAccountCPF);
 */
 function verifyIfExistsAccountCPF(request, response, next) {
-    const { cpf } = request.params;
+    const { cpf } = request.headers;
 
     const customer = customers.find(customer => customer.cpf === cpf);
 
@@ -57,9 +57,27 @@ app.post("/account", (request, response) => {
 // app.use(verifyIfExistsAccountCPF);
 
 // Buscar o extrato bancário do cliente
-app.get("/statement/:cpf", verifyIfExistsAccountCPF, (request, response) => {
-    const {customer} = request;
+app.get("/statement", verifyIfExistsAccountCPF, (request, response) => {
+    const { customer } = request;
     return response.json(customer.statement);
+});
+
+// Realizar um depósito
+app.post("/deposit", verifyIfExistsAccountCPF, (request, response) => {
+    const { description, amount } = request.body;
+
+    const { customer } = request;
+
+    const statetmentOperation = {
+        description,
+        amount,
+        created_at: new Date(),
+        type: "credit"
+    }
+
+    customer.statement.push(statetmentOperation);
+
+    return response.status(201).send();
 });
 
 app.listen(3333);
